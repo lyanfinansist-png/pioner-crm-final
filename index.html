@@ -2,27 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- Оптимизация под iPhone (safe-area, запрет зума) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>CRM Агентства</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* УБИРАЕМ СИНЮЮ РАМКУ И ДЕЛАЕМ ПОДСВЕТКУ */
         input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
 
         body { 
-            background-color: #121212; 
-            color: #e0e0e0; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            /* Отступы для iPhone 15 (Dynamic Island и нижняя полоса) */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
+            background-color: #121212; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
         }
 
         /* ЭКРАН ВХОДА */
@@ -30,6 +20,11 @@
         .login-box { background: #1e1e1e; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 360px; }
         .login-box h2 { margin-bottom: 24px; color: #fff; font-size: 24px;}
         .login-box select, .login-box input { width: 100%; padding: 16px; margin-bottom: 16px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 10px; font-size: 16px; }
+        
+        /* ГАЛОЧКА ЗАПОМНИТЬ */
+        .remember-me { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; cursor: pointer; font-size: 15px; color: #a0a0a0;}
+        .remember-me input { width: 20px; height: 20px; margin-bottom: 0; cursor: pointer; accent-color: #3b82f6; }
+
         .login-box button { width: 100%; padding: 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 17px; }
         .error-msg { color: #ef4444; font-size: 14px; margin-bottom: 10px; display: none; }
 
@@ -43,7 +38,6 @@
         .btn-back { background: transparent; border: 1px solid #555; color: #aaa; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 15px;}
         .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 15px;}
 
-        /* БЛОК СВОДКИ */
         .finance-summary { display: flex; align-items: center; justify-content: space-around; background-color: #181820; border: 2px solid #4CAF50; border-radius: 14px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15); width: 100%; max-width: 400px;}
         .summary-item { display: flex; flex-direction: column; align-items: center; }
         .finance-summary .label { font-size: 12px; color: #a0a0a0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -58,12 +52,10 @@
         .card-item .subtitle { font-size: 14px; color: #888; }
         .btn-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;}
         
-        /* ФОРМА ДОБАВЛЕНИЯ (Гибкая) */
         .create-form { background: #1a1a1a; padding: 20px; border-radius: 14px; border: 1px solid #333; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
         .create-form input, .create-form select { flex: 1; min-width: 140px; padding: 14px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 10px; font-size: 16px; }
         .create-form button { padding: 14px 24px; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; white-space: nowrap;}
 
-        /* КАРТОЧКА */
         .main-content { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 380px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; flex-shrink: 0;}
         .form-group { margin-bottom: 16px; }
@@ -92,7 +84,6 @@
         .chat-input-area input { flex: 1; padding: 14px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 16px; }
         .chat-input-area button { background: #3b82f6; color: white; border: none; padding: 0 24px; border-radius: 10px; cursor: pointer; font-size: 20px; }
 
-        /* МОБИЛЬНАЯ ВЕРСИЯ (iPhone 15+) */
         @media (max-width: 800px) {
             .header { flex-direction: column; align-items: stretch; padding-top: 10px; }
             .header-left { justify-content: space-between; }
@@ -118,12 +109,19 @@
                 <option value="Маргарита">Маргарита</option>
             </select>
             <input type="password" id="login-pin" placeholder="Введите ПИН-код" maxlength="4">
+            
+            <!-- ГАЛОЧКА ЗАПОМНИТЬ ПАРОЛЬ -->
+            <label class="remember-me">
+                <input type="checkbox" id="remember-checkbox">
+                Запомнить меня
+            </label>
+
             <button onclick="login()">Войти</button>
         </div>
     </div>
 
     <div id="app-screen">
-        <!-- ЭКРАН 1: СПИСОК ЖК И ОБЩАЯ СВОДКА -->
+        <!-- ЭКРАН 1: СПИСОК ЖК -->
         <div id="view-complexes" class="view-section active">
             <div class="header">
                 <div class="header-left">
@@ -131,7 +129,6 @@
                     <button class="btn-logout" onclick="logout()">Выйти</button>
                 </div>
                 
-                <!-- ГЛОБАЛЬНАЯ СВОДКА (АДМИН ВИДИТ ВСЕХ) -->
                 <div class="finance-summary">
                     <div class="summary-item"><span class="label">Ожидается</span><span class="value" id="global-total-expected">0 ₽</span></div>
                     <div class="divider">/</div>
@@ -168,7 +165,6 @@
                     <input type="tel" id="new-client-phone" placeholder="Телефон" required>
                     <input type="text" id="new-client-apt" placeholder="Квартира" required>
                     
-                    <!-- ВЫБОР АГЕНТА (ТОЛЬКО ДЛЯ АДМИНА) -->
                     <select id="new-client-agent" style="display: none;">
                         <option value="Никита">Никита</option>
                         <option value="Давид">Давид</option>
@@ -269,7 +265,6 @@
         let localData = { complexes: [], clients: [] };
         let state = { complexId: null, clientId: null };
 
-        // Слушатель Firebase (обновляет всё в реальном времени)
         onValue(dbRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -281,7 +276,6 @@
                 set(dbRef, localData);
             }
             
-            // Если пользователь авторизован, обновляем текущий экран
             if (currentUser) {
                 const activeView = document.querySelector('.view-section.active').id;
                 if (activeView === 'view-complexes') renderComplexes();
@@ -297,13 +291,25 @@
             });
         }
 
+        // --- АВТОРИЗАЦИЯ ---
         window.login = function() {
             const name = document.getElementById('login-name').value;
             const pin = document.getElementById('login-pin').value.trim();
             const err = document.getElementById('error-msg');
+            const remember = document.getElementById('remember-checkbox').checked;
 
             if (name && USERS[name] === pin) {
                 currentUser = name;
+                
+                // СОХРАНЯЕМ ПАРОЛЬ, ЕСЛИ СТОИТ ГАЛОЧКА
+                if (remember) {
+                    localStorage.setItem('crm_saved_user', name);
+                    localStorage.setItem('crm_saved_pin', pin);
+                } else {
+                    localStorage.removeItem('crm_saved_user');
+                    localStorage.removeItem('crm_saved_pin');
+                }
+
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'flex';
                 document.getElementById('current-user-name').textContent = currentUser;
@@ -317,12 +323,35 @@
 
         window.logout = function() {
             currentUser = null;
-            document.getElementById('login-name').value = '';
+            // Очищаем поля, но оставляем сохраненный пароль, чтобы при следующем входе он подставился
             document.getElementById('login-pin').value = '';
             document.getElementById('login-screen').style.display = 'flex';
             document.getElementById('app-screen').style.display = 'none';
             state = { complexId: null, clientId: null };
+            
+            // Если пароль был сохранен, подставляем его обратно в форму
+            const savedUser = localStorage.getItem('crm_saved_user');
+            const savedPin = localStorage.getItem('crm_saved_pin');
+            if (savedUser && savedPin) {
+                document.getElementById('login-name').value = savedUser;
+                document.getElementById('login-pin').value = savedPin;
+                document.getElementById('remember-checkbox').checked = true;
+            }
         };
+
+        // АВТОВХОД ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('crm_saved_user');
+            const savedPin = localStorage.getItem('crm_saved_pin');
+            
+            if (savedUser && savedPin) {
+                document.getElementById('login-name').value = savedUser;
+                document.getElementById('login-pin').value = savedPin;
+                document.getElementById('remember-checkbox').checked = true;
+                // Опционально: можно сразу вызвать login(), чтобы вообще не видеть экран входа
+                // login(); 
+            }
+        });
 
         window.navTo = function(view) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
@@ -332,12 +361,10 @@
             if (view === 'details') renderDetails();
         };
 
-        // ГЛОБАЛЬНАЯ СВОДКА (Вызывается на главном экране)
+        // --- ОТРИСОВКА ---
         function updateGlobalTotals() {
             let exp = 0, paid = 0;
             const isAdmin = ADMINS.includes(currentUser);
-            
-            // Если Админ - суммирует ВСЕХ клиентов. Если агент - только своих.
             const relevantClients = isAdmin ? localData.clients : localData.clients.filter(c => c.agent === currentUser);
             
             relevantClients.forEach(c => {
@@ -361,7 +388,7 @@
                 </div>
             `).join('');
             
-            updateGlobalTotals(); // Обновляем большую сводку на главном экране
+            updateGlobalTotals();
         }
 
         window.createComplex = function() {
@@ -393,15 +420,9 @@
             
             if (!state.complexId) return;
 
-            // Показываем выпадающий список агентов ТОЛЬКО Админу
             const agentSelect = document.getElementById('new-client-agent');
-            if (isAdmin) {
-                agentSelect.style.display = 'block';
-            } else {
-                agentSelect.style.display = 'none';
-            }
+            agentSelect.style.display = isAdmin ? 'block' : 'none';
 
-            // Фильтруем клиентов
             let clients = localData.clients.filter(c => c.complexId === state.complexId);
             if (!isAdmin) clients = clients.filter(c => c.agent === currentUser);
 
@@ -421,30 +442,22 @@
             const phone = document.getElementById('new-client-phone').value.trim();
             const apt = document.getElementById('new-client-apt').value.trim();
             
-            if (!name || !phone || !apt) {
-                alert('Заполните все поля!');
-                return;
-            }
+            if (!name || !phone || !apt) return alert('Заполните все поля!');
 
             const isAdmin = ADMINS.includes(currentUser);
             const assignedAgent = isAdmin ? document.getElementById('new-client-agent').value : currentUser;
 
             localData.clients.push({ 
-                id: Date.now().toString(), 
-                complexId: state.complexId, 
-                agent: assignedAgent, 
-                name, phone, apartment: apt, 
-                address: '', budget: '', description: '', expected: '', paid: '', messages: [] 
+                id: Date.now().toString(), complexId: state.complexId, agent: assignedAgent, 
+                name, phone, apartment: apt, address: '', budget: '', description: '', expected: '', paid: '', messages: [] 
             });
             
             saveDataToFirebase();
-            renderClients(); // Мгновенно обновляем список
+            renderClients();
             
             document.getElementById('new-client-name').value = '';
             document.getElementById('new-client-phone').value = '';
             document.getElementById('new-client-apt').value = '';
-            
-            alert('✅ Клиент добавлен!');
         };
 
         window.selectClient = function(id) { state.clientId = id; navTo('details'); };
@@ -463,15 +476,12 @@
             document.getElementById('input-expected').value = c.expected || '';
             document.getElementById('input-paid').value = c.paid || '';
             document.getElementById('description').value = c.description || '';
-            
             document.getElementById('client-agent').value = c.agent || 'Никита';
 
             document.getElementById('call-link').href = 'tel:' + (c.phone || '').replace(/[^\d+]/g, '');
 
-            document.querySelectorAll('.admin-only').forEach(f => { f.disabled = !isAdmin; f.style.cursor = isAdmin ? 'text' : 'not-allowed'; });
+            document.querySelectorAll('.admin-only').forEach(f => { f.disabled = !isAdmin; });
             document.getElementById('admin-only-label').textContent = isAdmin ? '' : '(только админ)';
-            
-            // Удаление только для админа
             document.getElementById('btn-delete-client').style.display = isAdmin ? 'block' : 'none';
 
             renderChat(c);
@@ -503,15 +513,13 @@
                 c.paid = document.getElementById('input-paid').value;
                 c.agent = document.getElementById('client-agent').value;
             }
-            
             saveDataToFirebase();
             alert('✅ Сохранено!');
         };
 
         window.deleteClient = function() {
             if (!ADMINS.includes(currentUser)) return alert('Удалять может только администратор!');
-            
-            if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
+            if (confirm('Удалить клиента?')) {
                 localData.clients = localData.clients.filter(c => c.id !== state.clientId);
                 state.clientId = null;
                 saveDataToFirebase();

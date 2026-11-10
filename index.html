@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CRM Агентства</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* УБИРАЕМ СИНЮЮ РАМКУ ПРИ КЛИКЕ */
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+
+        body { background-color: #121212; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+        /* ЭКРАН ВХОДА */
+        #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; width: 100%; }
+        .login-box { background: #1e1e1e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 320px; }
+        .login-box h2 { margin-bottom: 20px; color: #fff; }
+        .login-box select { width: 100%; padding: 12px; margin-bottom: 15px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 15px; cursor: pointer; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 15px; }
+        .login-box button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        .error-msg { color: #ef4444; font-size: 14px; margin-bottom: 10px; display: none; }
+
+        /* ОСНОВНОЕ */
+        #app-screen { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        .view-section { display: none; flex-direction: column; height: 100%; }
+        .view-section.active { display: flex; }
+
+        .header { background: #1e1e24; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; min-height: 70px; flex-wrap: wrap; gap: 10px;}
+        .header-left { display: flex; align-items: center; gap: 15px; font-size: 18px; font-weight: bold; }
+        .btn-back { background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px;}
+        .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px;}
+
+        /* БЛОК СВОДКИ */
+        .finance-summary { display: flex; align-items: center; justify-content: space-around; background-color: #181820; border: 2px solid #4CAF50; border-radius: 12px; padding: 8px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15); }
+        .summary-item { display: flex; flex-direction: column; align-items: center; }
+        .finance-summary .label { font-size: 11px; color: #a0a0a0; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;}
+        .finance-summary .value { font-size: 18px; font-weight: bold; color: #fff; }
+        .finance-summary .value.paid { color: #4CAF50; }
+        .finance-summary .divider { font-size: 22px; color: #444; margin: 0 15px; }
+
+        .list-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .card-item { background: #1e1e24; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .card-item:hover { border-color: #3b82f6; }
+        .card-item .title { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .card-item .subtitle { font-size: 13px; color: #888; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;}
+        
+        /* КРАСИВАЯ ФОРМА ДОБАВЛЕНИЯ */
+        .create-form { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; }
+        .create-form input { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 8px; font-size: 14px; }
+        .create-form button { padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; height: 100%; transition: 0.2s; white-space: nowrap;}
+        .create-form button:hover { background: #45a049; }
+
+        /* КАРТОЧКА */
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 350px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; flex-shrink: 0;}
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 14px; }
+        .form-group input:disabled, .form-group select:disabled { background: #1f1f1f; color: #666; cursor: not-allowed; }
+        
+        .phone-row { display: flex; gap: 10px; }
+        .phone-row input { flex: 1; }
+        .btn-copy { background: #333; border: 1px solid #444; color: #ccc; padding: 0 10px; border-radius: 6px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center;}
+
+        .reward-box { background: #142e1a; border: 1px solid #1f4f2d; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .reward-box h3 { font-size: 14px; color: #4CAF50; margin-bottom: 15px; text-transform: uppercase; }
+        .reward-box .total-text { font-size: 16px; font-weight: bold; color: #fff; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #1f4f2d; }
+
+        .btn-save { width: 100%; padding: 14px; margin-top: 20px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s;}
+
+        .content-area { flex: 1; display: flex; flex-direction: column; background: #121212; }
+        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;}
+        .chat-message { background: #1e1e24; border: 1px solid #333; padding: 12px; border-radius: 12px; border-top-left-radius: 4px; max-width: 80%; }
+        .chat-meta { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 15px;}
+        .mention { color: #58a6ff; font-weight: bold; }
+        .btn-edit-msg { background: none; border: none; color: #888; cursor: pointer; font-size: 12px; padding: 0; }
+
+        .chat-input-area { padding: 15px 20px; background: #1e1e24; border-top: 1px solid #333; display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 12px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 16px; }
+        .chat-input-area button { background: #3b82f6; color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; }
+
+        @media (max-width: 800px) {
+            .create-form { grid-template-columns: 1fr; padding: 15px; }
+            .main-content { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #333; max-height: 55vh; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header-left { justify-content: space-between; }
+            .finance-summary { width: 100%; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Вход в систему</h2>
+            <div class="error-msg" id="error-msg">Неверный ПИН-код</div>
+            <select id="login-name">
+                <option value="" disabled selected>Выберите пользователя...</option>
+                <option value="Администратор">Администратор</option>
+                <option value="Никита">Никита</option>
+                <option value="Давид">Давид</option>
+                <option value="Денис">Денис</option>
+                <option value="Маргарита">Маргарита</option>
+            </select>
+            <input type="password" id="login-pin" placeholder="Введите ПИН-код" maxlength="4">
+            <button onclick="login()">Войти</button>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <!-- ЭКРАН 1: СПИСОК ЖК -->
+        <div id="view-complexes" class="view-section active">
+            <div class="header">
+                <div class="header-left"><span>Здравствуйте, <span id="current-user-name">...</span></span></div>
+                
+                <div class="finance-summary">
+                    <div class="summary-item"><span class="label">Ожидается</span><span class="value" id="global-total-expected">0 ₽</span></div>
+                    <div class="divider">/</div>
+                    <div class="summary-item"><span class="label">Получено</span><span class="value paid" id="global-total-paid">0 ₽</span></div>
+                </div>
+
+                <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+            <div class="list-content">
+                <h2 style="margin-bottom: 20px;">Список ЖК</h2>
+                <form id="form-complex" class="create-form" onsubmit="event.preventDefault(); createComplex();" style="display: none; grid-template-columns: 1fr auto;">
+                    <input type="text" id="new-complex-name" placeholder="Название нового ЖК...">
+                    <button type="submit">Создать</button>
+                </form>
+                <div id="complexes-list"></div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 2: КЛИЕНТЫ -->
+        <div id="view-clients" class="view-section">
+            <div class="header">
+                <div class="header-left">
+                    <button class="btn-back" onclick="navTo('complexes')">← ЖК</button>
+                    <span id="current-complex-name">ЖК</span>
+                </div>
+                <div class="finance-summary">
+                    <div class="summary-item"><span class="label">Ожидается</span><span class="value" id="total-expected-complex">0 ₽</span></div>
+                    <div class="divider">/</div>
+                    <div class="summary-item"><span class="label">Выплачено</span><span class="value paid" id="total-paid-complex">0 ₽</span></div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+            <div class="list-content">
+                <!-- ТЕПЕРЬ ЭТО ФОРМА -->
+                <form id="form-client" class="create-form" onsubmit="event.preventDefault(); createClient();">
+                    <input type="text" id="new-client-name" placeholder="ФИО клиента" required>
+                    <input type="tel" id="new-client-phone" placeholder="Телефон" required>
+                    <input type="text" id="new-client-apt" placeholder="Номер квартиры" required>
+                    <button type="submit">Добавить</button>
+                </form>
+                <div id="clients-list"></div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 3: КАРТОЧКА -->
+        <div id="view-details" class="view-section">
+            <div class="header">
+                <div class="header-left">
+                    <button class="btn-back" onclick="navTo('clients')">← Назад</button>
+                    <span id="detail-header-name">Клиент</span>
+                </div>
+                <div class="finance-summary">
+                    <div class="summary-item"><span class="label">Ожидается</span><span class="value" id="total-expected">0 ₽</span></div>
+                    <div class="divider">/</div>
+                    <div class="summary-item"><span class="label">Выплачено</span><span class="value paid" id="total-paid">0 ₽</span></div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+            <div class="main-content">
+                <div class="sidebar">
+                    <div class="form-group"><label>ФИО</label><input type="text" id="fio"></div>
+                    <div class="form-group"><label>Номер квартиры</label><input type="text" id="apartment"></div>
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <div class="phone-row">
+                            <input type="tel" id="phone">
+                            <button class="btn-copy" onclick="copyPhone()">📋</button>
+                            <a id="call-link" href="#" class="btn-copy">📞</a>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Адрес</label><input type="text" id="address" placeholder="Не указан"></div>
+                    <div class="form-group"><label>Бюджет</label><input type="text" id="budget" placeholder="Не указан"></div>
+                    
+                    <div class="reward-box">
+                        <h3>Вознаграждение</h3>
+                        <div class="form-group"><label>Ожидаемое (₽) <span style="color:#ef4444; font-size:10px;" id="admin-only-label"></span></label><input type="number" id="input-expected" class="admin-only" oninput="updateTotals()"></div>
+                        <div class="form-group"><label>Выплачено (₽)</label><input type="number" id="input-paid" class="admin-only" oninput="updateTotals()"></div>
+                        <div class="total-text" id="sidebar-total">Итого: 0 ₽ / 0 ₽</div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 20px;"><label>Описание</label><textarea id="description" rows="3"></textarea></div>
+                    
+                    <div class="form-group">
+                        <label>Ответственный агент</label>
+                        <select id="client-agent" class="admin-only">
+                            <option value="Никита">Никита</option>
+                            <option value="Давид">Давид</option>
+                            <option value="Денис">Денис</option>
+                            <option value="Маргарита">Маргарита</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-save" onclick="saveClientData()">💾 Сохранить изменения</button>
+                    <button id="btn-delete-client" class="btn-danger" style="width: 100%; margin-top: 10px; padding: 14px; display: none;" onclick="deleteClient()">Удалить клиента</button>
+                </div>
+                <div class="content-area">
+                    <div class="chat-history" id="chat-history"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Написать в чат..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-82Wn1fd46PyWJcLvgAHyk99HD1OaZOU",
+            authDomain: "crm-pioner.firebaseapp.com",
+            databaseURL: "https://crm-pioner-default-rtdb.firebaseio.com",
+            projectId: "crm-pioner",
+            storageBucket: "crm-pioner.firebasestorage.app",
+            messagingSenderId: "147427285344",
+            appId: "1:147427285344:web:5ff099ef3828040a6ae605"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'crm_data');
+
+        const USERS = { "Администратор": "8831", "Никита": "7492", "Давид": "3185", "Денис": "9041", "Маргарита": "5628" };
+        const ADMINS = ["Администратор"]; 
+        let currentUser = null;
+
+        let localData = { complexes: [], clients: [] };
+        let state = { complexId: null, clientId: null };
+
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                localData = data;
+                if (!localData.complexes) localData.complexes = [];
+                if (!localData.clients) localData.clients = [];
+            } else {
+                localData = { complexes: [{ id: '1', name: 'ЖК Северный Парк' }], clients: [] };
+                set(dbRef, localData);
+            }
+            if (currentUser) {
+                const activeView = document.querySelector('.view-section.active').id;
+                if (activeView === 'view-complexes') renderComplexes();
+                if (activeView === 'view-clients') renderClients();
+                if (activeView === 'view-details') renderDetails();
+            }
+        });
+
+        function saveDataToFirebase() { 
+            set(dbRef, localData)
+                .then(() => console.log("Успешно сохранено в Firebase"))
+                .catch((error) => {
+                    console.error("Ошибка Firebase:", error);
+                    alert("ОШИБКА БАЗЫ ДАННЫХ! Проверьте правила в Firebase (Rules).\n" + error.message);
+                });
+        }
+
+        window.login = function() {
+            const name = document.getElementById('login-name').value;
+            const pin = document.getElementById('login-pin').value.trim();
+            const err = document.getElementById('error-msg');
+
+            if (name && USERS[name] === pin) {
+                currentUser = name;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'flex';
+                document.getElementById('current-user-name').textContent = currentUser;
+                err.style.display = 'none';
+                document.getElementById('login-pin').value = '';
+                navTo('complexes');
+            } else {
+                err.style.display = 'block';
+            }
+        };
+
+        window.logout = function() {
+            currentUser = null;
+            document.getElementById('login-name').value = '';
+            document.getElementById('login-pin').value = '';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app-screen').style.display = 'none';
+            state = { complexId: null, clientId: null };
+        };
+
+        window.navTo = function(view) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('view-' + view).classList.add('active');
+            if (view === 'complexes') renderComplexes();
+            if (view === 'clients') renderClients();
+            if (view === 'details') renderDetails();
+        };
+
+        function updateGlobalTotals() {
+            let exp = 0, paid = 0;
+            const isAdmin = ADMINS.includes(currentUser);
+            
+            const relevantClients = isAdmin ? localData.clients : localData.clients.filter(c => c.agent === currentUser);
+            
+            relevantClients.forEach(c => {
+                exp += Number(c.expected) || 0;
+                paid += Number(c.paid) || 0;
+            });
+            
+            document.getElementById('global-total-expected').textContent = formatMoney(exp);
+            document.getElementById('global-total-paid').textContent = formatMoney(paid);
+        }
+
+        function renderComplexes() {
+            const list = document.getElementById('complexes-list');
+            const isAdmin = ADMINS.includes(currentUser);
+            document.getElementById('form-complex').style.display = isAdmin ? 'grid' : 'none';
+
+            list.innerHTML = localData.complexes.map(jk => `
+                <div class="card-item" onclick="selectComplex('${jk.id}')">
+                    <div><div class="title">🏢 ${jk.name}</div></div>
+                    ${isAdmin ? `<button class="btn-danger" onclick="deleteComplex(event, '${jk.id}')">Удалить</button>` : ''}
+                </div>
+            `).join('');
+            
+            updateGlobalTotals();
+        }
+
+        window.createComplex = function() {
+            const name = document.getElementById('new-complex-name').value.trim();
+            if (!name || !ADMINS.includes(currentUser)) return;
+            
+            localData.complexes.push({ id: Date.now().toString(), name });
+            saveDataToFirebase();
+            document.getElementById('new-complex-name').value = '';
+        };
+
+        window.deleteComplex = function(e, id) {
+            e.stopPropagation();
+            if (!ADMINS.includes(currentUser) || !confirm('Удалить ЖК и его клиентов?')) return;
+            localData.complexes = localData.complexes.filter(j => j.id !== id);
+            localData.clients = localData.clients.filter(c => c.complexId !== id);
+            saveDataToFirebase();
+        };
+
+        window.selectComplex = function(id) {
+            state.complexId = id;
+            document.getElementById('current-complex-name').textContent = localData.complexes.find(j => j.id === id).name;
+            navTo('clients');
+        };
+
+        function renderClients() {
+            const list = document.getElementById('clients-list');
+            const isAdmin = ADMINS.includes(currentUser);
+            let clients = localData.clients.filter(c => c.complexId === state.complexId);
+            if (!isAdmin) clients = clients.filter(c => c.agent === currentUser);
+
+            let exp = 0, paid = 0;
+            clients.forEach(c => { exp += Number(c.expected) || 0; paid += Number(c.paid) || 0; });
+            document.getElementById('total-expected-complex').textContent = formatMoney(exp);
+            document.getElementById('total-paid-complex').textContent = formatMoney(paid);
+
+            list.innerHTML = clients.map(c => {
+                const m = (Number(c.expected) > 0 || Number(c.paid) > 0) ? ` · 💰 ${formatMoney(Number(c.paid))} / ${formatMoney(Number(c.expected))}` : '';
+                return `<div class="card-item" onclick="selectClient('${c.id}')"><div><div class="title">${c.name}</div><div class="subtitle">Кв. ${c.apartment} · Тел: ${c.phone}${m}</div></div></div>`;
+            }).join('') || '<div style="color: #888;">Нет клиентов</div>';
+        }
+
+        window.createClient = function() {
+            const name = document.getElementById('new-client-name').value.trim();
+            const phone = document.getElementById('new-client-phone').value.trim();
+            const apt = document.getElementById('new-client-apt').value.trim();
+            
+            if (!name || !phone || !apt) {
+                alert('Заполните все поля!');
+                return;
+            }
+
+            const defaultAgent = ADMINS.includes(currentUser) ? 'Никита' : currentUser;
+
+            if (!localData.clients) localData.clients = [];
+            
+            localData.clients.push({ 
+                id: Date.now().toString(), 
+                complexId: state.complexId, 
+                agent: defaultAgent, 
+                name, phone, apartment: apt, 
+                address: '', budget: '', description: '', expected: '', paid: '', messages: [] 
+            });
+            
+            // Перерисовываем список сразу
+            renderClients();
+            updateGlobalTotals();
+            
+            // Сохраняем в базу
+            saveDataToFirebase();
+            
+            // Очищаем поля
+            document.getElementById('new-client-name').value = '';
+            document.getElementById('new-client-phone').value = '';
+            document.getElementById('new-client-apt').value = '';
+            
+            alert('✅ Клиент добавлен!');
+        };
+
+        window.selectClient = function(id) { state.clientId = id; navTo('details'); };
+
+        function renderDetails() {
+            const c = localData.clients.find(x => x.id === state.clientId);
+            if (!c) return;
+            const isAdmin = ADMINS.includes(currentUser);
+
+            document.getElementById('detail-header-name').textContent = c.name;
+            document.getElementById('fio').value = c.name || '';
+            document.getElementById('apartment').value = c.apartment || '';
+            document.getElementById('phone').value = c.phone || '';
+            document.getElementById('address').value = c.address || '';
+            document.getElementById('budget').value = c.budget || '';
+            document.getElementById('input-expected').value = c.expected || '';
+            document.getElementById('input-paid').value = c.paid || '';
+            document.getElementById('description').value = c.description || '';
+            
+            document.getElementById('client-agent').value = c.agent || 'Никита';
+
+            document.getElementById('call-link').href = 'tel:' + (c.phone || '').replace(/[^\d+]/g, '');
+
+            document.querySelectorAll('.admin-only').forEach(f => { f.disabled = !isAdmin; f.style.cursor = isAdmin ? 'text' : 'not-allowed'; });
+            document.getElementById('admin-only-label').textContent = isAdmin ? '' : '(только админ)';
+            document.getElementById('btn-delete-client').style.display = isAdmin ? 'block' : 'none';
+
+            renderChat(c);
+            updateTotals();
+        }
+
+        function formatMoney(v) { return v.toLocaleString('ru-RU') + ' ₽'; }
+
+        window.updateTotals = function() {
+            const e = Number(document.getElementById('input-expected').value) || 0;
+            const p = Number(document.getElementById('input-paid').value) || 0;
+            document.getElementById('total-expected').textContent = formatMoney(e);
+            document.getElementById('total-paid').textContent = formatMoney(p);
+            document.getElementById('sidebar-total').textContent = `Итого: ${formatMoney(p)} / ${formatMoney(e)}`;
+        };
+
+        window.saveClientData = function() {
+            const c = localData.clients.find(x => x.id === state.clientId);
+            if (!c) return;
+            c.name = document.getElementById('fio').value;
+            c.apartment = document.getElementById('apartment').value;
+            c.phone = document.getElementById('phone').value;
+            c.address = document.getElementById('address').value;
+            c.budget = document.getElementById('budget').value;
+            c.description = document.getElementById('description').value;
+            
+            if (ADMINS.includes(currentUser)) {
+                c.expected = document.getElementById('input-expected').value;
+                c.paid = document.getElementById('input-paid').value;
+                c.agent = document.getElementById('client-agent').value;
+            }
+            
+            saveDataToFirebase();
+            alert('✅ Сохранено!');
+        };
+
+        window.deleteClient = function() {
+            if (ADMINS.includes(currentUser) && confirm('Удалить клиента?')) {
+                localData.clients = localData.clients.filter(c => c.id !== state.clientId);
+                saveDataToFirebase();
+                navTo('clients');
+            }
+        };
+
+        window.copyPhone = function() {
+            const p = document.getElementById('phone').value;
+            if (p) navigator.clipboard.writeText(p).then(() => alert('Скопировано: ' + p));
+        };
+
+        function renderChat(c) {
+            const box = document.getElementById('chat-history');
+            if (!c.messages || !c.messages.length) { box.innerHTML = '<div style="color: #555; text-align: center; margin-top: 20px;">Нет записей.</div>'; return; }
+            box.innerHTML = c.messages.map((m, i) => {
+                const t = m.text.replace(/(@[А-Яа-яA-Za-z0-9_]+)/g, '<span class="mention">$1</span>');
+                const btn = m.author === currentUser ? `<button class="btn-edit-msg" onclick="editMessage(${i})">✏️ Ред.</button>` : '';
+                return `<div class="chat-message"><div class="chat-meta"><span>${m.author} · ${m.time}</span>${btn}</div><div class="chat-text">${t}</div></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        window.sendMessage = function() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            const c = localData.clients.find(x => x.id === state.clientId);
+            if (!c.messages) c.messages = [];
+            c.messages.push({ author: currentUser, text, time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) });
+            saveDataToFirebase();
+            input.value = '';
+        };
+
+        window.editMessage = function(i) {
+            const c = localData.clients.find(x => x.id === state.clientId);
+            if (!c || !c.messages[i]) return;
+            const newText = prompt("Редактировать:", c.messages[i].text);
+            if (newText !== null) {
+                if (newText.trim() === '') { if(confirm('Удалить?')) c.messages.splice(i, 1); }
+                else { c.messages[i].text = newText.trim(); }
+                saveDataToFirebase();
+            }
+        };
+    </script>
+</body>
+</html>

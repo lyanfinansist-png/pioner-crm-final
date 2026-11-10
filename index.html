@@ -2,92 +2,104 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- Оптимизация под iPhone (safe-area, запрет зума) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>CRM Агентства</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* УБИРАЕМ СИНЮЮ РАМКУ ПРИ КЛИКЕ */
+        /* УБИРАЕМ СИНЮЮ РАМКУ И ДЕЛАЕМ ПОДСВЕТКУ */
         input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
 
-        body { background-color: #121212; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+        body { 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            /* Отступы для iPhone 15 (Dynamic Island и нижняя полоса) */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
 
         /* ЭКРАН ВХОДА */
         #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; width: 100%; }
-        .login-box { background: #1e1e1e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 320px; }
-        .login-box h2 { margin-bottom: 20px; color: #fff; }
-        .login-box select { width: 100%; padding: 12px; margin-bottom: 15px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 15px; cursor: pointer; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 15px; }
-        .login-box button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        .login-box { background: #1e1e1e; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 360px; }
+        .login-box h2 { margin-bottom: 24px; color: #fff; font-size: 24px;}
+        .login-box select, .login-box input { width: 100%; padding: 16px; margin-bottom: 16px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 10px; font-size: 16px; }
+        .login-box button { width: 100%; padding: 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 17px; }
         .error-msg { color: #ef4444; font-size: 14px; margin-bottom: 10px; display: none; }
 
         /* ОСНОВНОЕ */
-        #app-screen { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        #app-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
         .view-section { display: none; flex-direction: column; height: 100%; }
         .view-section.active { display: flex; }
 
-        .header { background: #1e1e24; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; min-height: 70px; flex-wrap: wrap; gap: 10px;}
+        .header { background: #1e1e24; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; flex-wrap: wrap; gap: 12px;}
         .header-left { display: flex; align-items: center; gap: 15px; font-size: 18px; font-weight: bold; }
-        .btn-back { background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px;}
-        .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px;}
+        .btn-back { background: transparent; border: 1px solid #555; color: #aaa; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 15px;}
+        .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 15px;}
 
         /* БЛОК СВОДКИ */
-        .finance-summary { display: flex; align-items: center; justify-content: space-around; background-color: #181820; border: 2px solid #4CAF50; border-radius: 12px; padding: 8px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15); }
+        .finance-summary { display: flex; align-items: center; justify-content: space-around; background-color: #181820; border: 2px solid #4CAF50; border-radius: 14px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15); width: 100%; max-width: 400px;}
         .summary-item { display: flex; flex-direction: column; align-items: center; }
-        .finance-summary .label { font-size: 11px; color: #a0a0a0; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;}
-        .finance-summary .value { font-size: 18px; font-weight: bold; color: #fff; }
+        .finance-summary .label { font-size: 12px; color: #a0a0a0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .finance-summary .value { font-size: 20px; font-weight: bold; color: #fff; }
         .finance-summary .value.paid { color: #4CAF50; }
-        .finance-summary .divider { font-size: 22px; color: #444; margin: 0 15px; }
+        .finance-summary .divider { font-size: 24px; color: #444; margin: 0 15px; }
 
         .list-content { padding: 20px; overflow-y: auto; flex: 1; }
-        .card-item { background: #1e1e24; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .card-item:hover { border-color: #3b82f6; }
-        .card-item .title { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 4px; }
-        .card-item .subtitle { font-size: 13px; color: #888; }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;}
+        .card-item { background: #1e1e24; border: 1px solid #333; padding: 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .card-item:active { background: #2a2a2a; transform: scale(0.98); }
+        .card-item .title { font-size: 17px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .card-item .subtitle { font-size: 14px; color: #888; }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;}
         
-        /* КРАСИВАЯ ФОРМА ДОБАВЛЕНИЯ */
-        .create-form { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; }
-        .create-form input { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 8px; font-size: 14px; }
-        .create-form button { padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; height: 100%; transition: 0.2s; white-space: nowrap;}
-        .create-form button:hover { background: #45a049; }
+        /* ФОРМА ДОБАВЛЕНИЯ (Гибкая) */
+        .create-form { background: #1a1a1a; padding: 20px; border-radius: 14px; border: 1px solid #333; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+        .create-form input, .create-form select { flex: 1; min-width: 140px; padding: 14px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 10px; font-size: 16px; }
+        .create-form button { padding: 14px 24px; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; white-space: nowrap;}
 
         /* КАРТОЧКА */
         .main-content { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 350px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; flex-shrink: 0;}
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 14px; }
-        .form-group input:disabled, .form-group select:disabled { background: #1f1f1f; color: #666; cursor: not-allowed; }
+        .sidebar { width: 380px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; flex-shrink: 0;}
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 14px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 16px; }
+        .form-group input:disabled, .form-group select:disabled { background: #1f1f1f; color: #666; }
         
         .phone-row { display: flex; gap: 10px; }
         .phone-row input { flex: 1; }
-        .btn-copy { background: #333; border: 1px solid #444; color: #ccc; padding: 0 10px; border-radius: 6px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center;}
+        .btn-copy { background: #333; border: 1px solid #444; color: #ccc; padding: 0 14px; border-radius: 10px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 18px;}
 
-        .reward-box { background: #142e1a; border: 1px solid #1f4f2d; padding: 15px; border-radius: 8px; margin-top: 20px; }
-        .reward-box h3 { font-size: 14px; color: #4CAF50; margin-bottom: 15px; text-transform: uppercase; }
-        .reward-box .total-text { font-size: 16px; font-weight: bold; color: #fff; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #1f4f2d; }
+        .reward-box { background: #142e1a; border: 1px solid #1f4f2d; padding: 16px; border-radius: 12px; margin-top: 20px; }
+        .reward-box h3 { font-size: 14px; color: #4CAF50; margin-bottom: 16px; text-transform: uppercase; }
+        .reward-box .total-text { font-size: 18px; font-weight: bold; color: #fff; margin-top: 16px; padding-top: 16px; border-top: 1px dashed #1f4f2d; text-align: center;}
 
-        .btn-save { width: 100%; padding: 14px; margin-top: 20px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s;}
+        .btn-save { width: 100%; padding: 16px; margin-top: 20px; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 17px; }
 
         .content-area { flex: 1; display: flex; flex-direction: column; background: #121212; }
-        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;}
-        .chat-message { background: #1e1e24; border: 1px solid #333; padding: 12px; border-radius: 12px; border-top-left-radius: 4px; max-width: 80%; }
-        .chat-meta { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 15px;}
+        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;}
+        .chat-message { background: #1e1e24; border: 1px solid #333; padding: 14px; border-radius: 16px; border-top-left-radius: 4px; max-width: 85%; }
+        .chat-meta { font-size: 12px; color: #888; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 15px;}
         .mention { color: #58a6ff; font-weight: bold; }
-        .btn-edit-msg { background: none; border: none; color: #888; cursor: pointer; font-size: 12px; padding: 0; }
+        .btn-edit-msg { background: none; border: none; color: #888; cursor: pointer; font-size: 13px; padding: 0; }
 
-        .chat-input-area { padding: 15px 20px; background: #1e1e24; border-top: 1px solid #333; display: flex; gap: 10px; }
-        .chat-input-area input { flex: 1; padding: 12px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 16px; }
-        .chat-input-area button { background: #3b82f6; color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; }
+        .chat-input-area { padding: 16px 20px; background: #1e1e24; border-top: 1px solid #333; display: flex; gap: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+        .chat-input-area input { flex: 1; padding: 14px; background: #2a2a2a; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 16px; }
+        .chat-input-area button { background: #3b82f6; color: white; border: none; padding: 0 24px; border-radius: 10px; cursor: pointer; font-size: 20px; }
 
+        /* МОБИЛЬНАЯ ВЕРСИЯ (iPhone 15+) */
         @media (max-width: 800px) {
-            .create-form { grid-template-columns: 1fr; padding: 15px; }
+            .header { flex-direction: column; align-items: stretch; padding-top: 10px; }
+            .header-left { justify-content: space-between; }
+            .create-form { flex-direction: column; }
             .main-content { flex-direction: column; }
             .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #333; max-height: 55vh; }
-            .header { flex-direction: column; align-items: stretch; }
-            .header-left { justify-content: space-between; }
-            .finance-summary { width: 100%; margin-top: 10px; }
+            .finance-summary { max-width: 100%; }
         }
     </style>
 </head>
@@ -95,7 +107,7 @@
 
     <div id="login-screen">
         <div class="login-box">
-            <h2>Вход в систему</h2>
+            <h2>Вход в CRM</h2>
             <div class="error-msg" id="error-msg">Неверный ПИН-код</div>
             <select id="login-name">
                 <option value="" disabled selected>Выберите пользователя...</option>
@@ -111,22 +123,24 @@
     </div>
 
     <div id="app-screen">
-        <!-- ЭКРАН 1: СПИСОК ЖК -->
+        <!-- ЭКРАН 1: СПИСОК ЖК И ОБЩАЯ СВОДКА -->
         <div id="view-complexes" class="view-section active">
             <div class="header">
-                <div class="header-left"><span>Здравствуйте, <span id="current-user-name">...</span></span></div>
+                <div class="header-left">
+                    <span>Здравствуйте, <span id="current-user-name">...</span></span>
+                    <button class="btn-logout" onclick="logout()">Выйти</button>
+                </div>
                 
+                <!-- ГЛОБАЛЬНАЯ СВОДКА (АДМИН ВИДИТ ВСЕХ) -->
                 <div class="finance-summary">
                     <div class="summary-item"><span class="label">Ожидается</span><span class="value" id="global-total-expected">0 ₽</span></div>
                     <div class="divider">/</div>
                     <div class="summary-item"><span class="label">Получено</span><span class="value paid" id="global-total-paid">0 ₽</span></div>
                 </div>
-
-                <button class="btn-logout" onclick="logout()">Выйти</button>
             </div>
             <div class="list-content">
                 <h2 style="margin-bottom: 20px;">Список ЖК</h2>
-                <form id="form-complex" class="create-form" onsubmit="event.preventDefault(); createComplex();" style="display: none; grid-template-columns: 1fr auto;">
+                <form id="form-complex" class="create-form" onsubmit="event.preventDefault(); createComplex();" style="display: none;">
                     <input type="text" id="new-complex-name" placeholder="Название нового ЖК...">
                     <button type="submit">Создать</button>
                 </form>
@@ -138,7 +152,7 @@
         <div id="view-clients" class="view-section">
             <div class="header">
                 <div class="header-left">
-                    <button class="btn-back" onclick="navTo('complexes')">← ЖК</button>
+                    <button class="btn-back" onclick="navTo('complexes')">← Назад</button>
                     <span id="current-complex-name">ЖК</span>
                 </div>
                 <div class="finance-summary">
@@ -149,11 +163,19 @@
                 <button class="btn-logout" onclick="logout()">Выйти</button>
             </div>
             <div class="list-content">
-                <!-- ТЕПЕРЬ ЭТО ФОРМА -->
                 <form id="form-client" class="create-form" onsubmit="event.preventDefault(); createClient();">
                     <input type="text" id="new-client-name" placeholder="ФИО клиента" required>
                     <input type="tel" id="new-client-phone" placeholder="Телефон" required>
-                    <input type="text" id="new-client-apt" placeholder="Номер квартиры" required>
+                    <input type="text" id="new-client-apt" placeholder="Квартира" required>
+                    
+                    <!-- ВЫБОР АГЕНТА (ТОЛЬКО ДЛЯ АДМИНА) -->
+                    <select id="new-client-agent" style="display: none;">
+                        <option value="Никита">Никита</option>
+                        <option value="Давид">Давид</option>
+                        <option value="Денис">Денис</option>
+                        <option value="Маргарита">Маргарита</option>
+                    </select>
+                    
                     <button type="submit">Добавить</button>
                 </form>
                 <div id="clients-list"></div>
@@ -191,7 +213,7 @@
                     
                     <div class="reward-box">
                         <h3>Вознаграждение</h3>
-                        <div class="form-group"><label>Ожидаемое (₽) <span style="color:#ef4444; font-size:10px;" id="admin-only-label"></span></label><input type="number" id="input-expected" class="admin-only" oninput="updateTotals()"></div>
+                        <div class="form-group"><label>Ожидаемое (₽) <span style="color:#ef4444; font-size:11px;" id="admin-only-label"></span></label><input type="number" id="input-expected" class="admin-only" oninput="updateTotals()"></div>
                         <div class="form-group"><label>Выплачено (₽)</label><input type="number" id="input-paid" class="admin-only" oninput="updateTotals()"></div>
                         <div class="total-text" id="sidebar-total">Итого: 0 ₽ / 0 ₽</div>
                     </div>
@@ -208,8 +230,8 @@
                         </select>
                     </div>
 
-                    <button class="btn-save" onclick="saveClientData()">💾 Сохранить изменения</button>
-                    <button id="btn-delete-client" class="btn-danger" style="width: 100%; margin-top: 10px; padding: 14px; display: none;" onclick="deleteClient()">Удалить клиента</button>
+                    <button class="btn-save" onclick="saveClientData()">💾 Сохранить</button>
+                    <button id="btn-delete-client" class="btn-danger" style="width: 100%; margin-top: 12px; padding: 16px; display: none;" onclick="deleteClient()">Удалить клиента</button>
                 </div>
                 <div class="content-area">
                     <div class="chat-history" id="chat-history"></div>
@@ -247,6 +269,7 @@
         let localData = { complexes: [], clients: [] };
         let state = { complexId: null, clientId: null };
 
+        // Слушатель Firebase (обновляет всё в реальном времени)
         onValue(dbRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -257,6 +280,8 @@
                 localData = { complexes: [{ id: '1', name: 'ЖК Северный Парк' }], clients: [] };
                 set(dbRef, localData);
             }
+            
+            // Если пользователь авторизован, обновляем текущий экран
             if (currentUser) {
                 const activeView = document.querySelector('.view-section.active').id;
                 if (activeView === 'view-complexes') renderComplexes();
@@ -266,12 +291,10 @@
         });
 
         function saveDataToFirebase() { 
-            set(dbRef, localData)
-                .then(() => console.log("Успешно сохранено в Firebase"))
-                .catch((error) => {
-                    console.error("Ошибка Firebase:", error);
-                    alert("ОШИБКА БАЗЫ ДАННЫХ! Проверьте правила в Firebase (Rules).\n" + error.message);
-                });
+            set(dbRef, localData).catch((error) => {
+                console.error("Ошибка Firebase:", error);
+                alert("ОШИБКА БАЗЫ ДАННЫХ! Проверьте правила в Firebase (Rules).");
+            });
         }
 
         window.login = function() {
@@ -309,10 +332,12 @@
             if (view === 'details') renderDetails();
         };
 
+        // ГЛОБАЛЬНАЯ СВОДКА (Вызывается на главном экране)
         function updateGlobalTotals() {
             let exp = 0, paid = 0;
             const isAdmin = ADMINS.includes(currentUser);
             
+            // Если Админ - суммирует ВСЕХ клиентов. Если агент - только своих.
             const relevantClients = isAdmin ? localData.clients : localData.clients.filter(c => c.agent === currentUser);
             
             relevantClients.forEach(c => {
@@ -327,7 +352,7 @@
         function renderComplexes() {
             const list = document.getElementById('complexes-list');
             const isAdmin = ADMINS.includes(currentUser);
-            document.getElementById('form-complex').style.display = isAdmin ? 'grid' : 'none';
+            document.getElementById('form-complex').style.display = isAdmin ? 'flex' : 'none';
 
             list.innerHTML = localData.complexes.map(jk => `
                 <div class="card-item" onclick="selectComplex('${jk.id}')">
@@ -336,7 +361,7 @@
                 </div>
             `).join('');
             
-            updateGlobalTotals();
+            updateGlobalTotals(); // Обновляем большую сводку на главном экране
         }
 
         window.createComplex = function() {
@@ -365,6 +390,18 @@
         function renderClients() {
             const list = document.getElementById('clients-list');
             const isAdmin = ADMINS.includes(currentUser);
+            
+            if (!state.complexId) return;
+
+            // Показываем выпадающий список агентов ТОЛЬКО Админу
+            const agentSelect = document.getElementById('new-client-agent');
+            if (isAdmin) {
+                agentSelect.style.display = 'block';
+            } else {
+                agentSelect.style.display = 'none';
+            }
+
+            // Фильтруем клиентов
             let clients = localData.clients.filter(c => c.complexId === state.complexId);
             if (!isAdmin) clients = clients.filter(c => c.agent === currentUser);
 
@@ -375,7 +412,7 @@
 
             list.innerHTML = clients.map(c => {
                 const m = (Number(c.expected) > 0 || Number(c.paid) > 0) ? ` · 💰 ${formatMoney(Number(c.paid))} / ${formatMoney(Number(c.expected))}` : '';
-                return `<div class="card-item" onclick="selectClient('${c.id}')"><div><div class="title">${c.name}</div><div class="subtitle">Кв. ${c.apartment} · Тел: ${c.phone}${m}</div></div></div>`;
+                return `<div class="card-item" onclick="selectClient('${c.id}')"><div><div class="title">${c.name}</div><div class="subtitle">Кв. ${c.apartment} · Тел: ${c.phone} · Агент: ${c.agent}${m}</div></div></div>`;
             }).join('') || '<div style="color: #888;">Нет клиентов</div>';
         }
 
@@ -389,26 +426,20 @@
                 return;
             }
 
-            const defaultAgent = ADMINS.includes(currentUser) ? 'Никита' : currentUser;
+            const isAdmin = ADMINS.includes(currentUser);
+            const assignedAgent = isAdmin ? document.getElementById('new-client-agent').value : currentUser;
 
-            if (!localData.clients) localData.clients = [];
-            
             localData.clients.push({ 
                 id: Date.now().toString(), 
                 complexId: state.complexId, 
-                agent: defaultAgent, 
+                agent: assignedAgent, 
                 name, phone, apartment: apt, 
                 address: '', budget: '', description: '', expected: '', paid: '', messages: [] 
             });
             
-            // Перерисовываем список сразу
-            renderClients();
-            updateGlobalTotals();
-            
-            // Сохраняем в базу
             saveDataToFirebase();
+            renderClients(); // Мгновенно обновляем список
             
-            // Очищаем поля
             document.getElementById('new-client-name').value = '';
             document.getElementById('new-client-phone').value = '';
             document.getElementById('new-client-apt').value = '';
@@ -439,6 +470,8 @@
 
             document.querySelectorAll('.admin-only').forEach(f => { f.disabled = !isAdmin; f.style.cursor = isAdmin ? 'text' : 'not-allowed'; });
             document.getElementById('admin-only-label').textContent = isAdmin ? '' : '(только админ)';
+            
+            // Удаление только для админа
             document.getElementById('btn-delete-client').style.display = isAdmin ? 'block' : 'none';
 
             renderChat(c);
@@ -476,10 +509,13 @@
         };
 
         window.deleteClient = function() {
-            if (ADMINS.includes(currentUser) && confirm('Удалить клиента?')) {
+            if (!ADMINS.includes(currentUser)) return alert('Удалять может только администратор!');
+            
+            if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
                 localData.clients = localData.clients.filter(c => c.id !== state.clientId);
+                state.clientId = null;
                 saveDataToFirebase();
-                navTo('clients');
+                navTo('clients'); 
             }
         };
 
